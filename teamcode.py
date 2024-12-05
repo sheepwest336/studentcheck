@@ -1,40 +1,31 @@
 from ultralytics import YOLO
 import cv2
-import numpy as np
 
+model = YOLO('yolov8n.pt') 
+model.predict(source="0", show=True, stream=True, classes=0) 
 
-def count_people(image_path):
-    model = YOLO('yolov8n.pt') 
+image_path_1 = 'example.jpg'
+image_path_2 = 'example2.jpg'
+
+results = model([image_path_1, image_path_2])
+
+count =[]
+
+for i in range(len(results)):
+    boxes = results[i].boxes 
+    masks = results[i].masks 
+    keypoints = results[i].keypoints 
+    probs = results[i].probs 
+    cnt = 0
     
-    image = cv2.imread(image_path)
-    if image is None:
-        raise FileNotFoundError(f"이미지 파일을 찾을 수 없습니다: {image_path}")
+    for box in boxes:
+        cnt += 1
     
-    results = model(image)
-    
-    count = sum(1 for result in results[0].boxes if result.cls == 0)
-    return count
-
-photo1 = "example.jpeg"
-photo2 = "example.jpeg"
-
-try:
-    count1 = count_people(photo1)
-    count2 = count_people(photo2)
-
-    print(f"사진 1에서 사람 수: {count1}")
-    print(f"사진 2에서 사람 수: {count2}")
-    print(f"증감 수: {count2 - count1}")
-
-    image1 = cv2.imread(photo1)
-    image2 = cv2.imread(photo2)
-    blob1 = cv2.dnn.blobFromImage(image1, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=True)
-    blob2 = cv2.dnn.blobFromImage(image2, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=True)
-
-    cv2.imshow("Original Photo 1", image1)
-    cv2.imshow("Original Photo 2", image2)
-    cv2.waitKey(0)
+    cv2.imwrite(f"ex{i}.jpg", results[i].plot())
     cv2.destroyAllWindows()
 
-except Exception as e:
-    print(f"오류 발생: {e}")
+    count.append(cnt)
+
+print(f"사진 1에서 사람 수: {count[0]}")
+print(f"사진 2에서 사람 수: {count[1]}")
+print(f"증감 수: {count[0] - count[1]}") if count[0] > count[1] else print(f"증감 수: {count[1] - count[0]}") 
