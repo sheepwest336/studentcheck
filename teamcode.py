@@ -1,26 +1,31 @@
 from ultralytics import YOLO
 import cv2
+# Load a model
+model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
+model.predict(source="0", show=True, stream=True, classes=0)  # [0, 3, 5] for multiple classes
 
-model = YOLO('yolov8n.pt') 
-model.predict(source="0", show=True, stream=True, classes=0) 
 
+# Define image file names
 image_path_1 = 'example.jpg'
 image_path_2 = 'example2.jpg'
 
-results = model([image_path_1, image_path_2])
+# Run batched inference on a list of images
+results = model([image_path_1, image_path_2], conf = 0.5)  # return a list of Results objects
 
 count =[]
 
+# Process results list
 for i in range(len(results)):
-    boxes = results[i].boxes 
-    masks = results[i].masks 
-    keypoints = results[i].keypoints 
-    probs = results[i].probs 
+    boxes = results[i].boxes  # Boxes object for bbox outputs
+    masks = results[i].masks  # Masks object for segmentation masks outputs
+    keypoints = results[i].keypoints  # Keypoints object for pose outputs
+    probs = results[i].probs  # Class probabilities for classification outputs
     cnt = 0
     
     for box in boxes:
         cnt += 1
     
+    # Display result with boxes
     cv2.imwrite(f"ex{i}.jpg", results[i].plot())
     cv2.destroyAllWindows()
 
